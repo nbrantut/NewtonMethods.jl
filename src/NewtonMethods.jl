@@ -1,9 +1,9 @@
-module NewtonRaphson
+module NewtonMethods
 
 using ForwardDiff: jacobian
 using LinearAlgebra: cond
 
-export newtonraphson
+export newtonraphson, quasinewton
 
 include("base.jl")
 
