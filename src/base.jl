@@ -1,44 +1,4 @@
 """
-    jacobian(f, x)
-
-Return jacobian matrix of operator f at point x: Jᵢⱼ = ∂fᵢ/∂xⱼ
-
-Uses Zygote for automatic differentiation.
-
-Copied directly from https://github.com/FluxML/Zygote.jl/issues/98
-
-Written by github user gdkrmr.
-"""
-function jacobian(f, x)
-    y = f(x)
-    n = length(y)
-    m = length(x)
-    T = eltype(y)
-    j = Array{T, 2}(undef, n, m)
-    for i in 1:n
-        j[i, :] .= gradient(x -> f(x)[i], x)[1]
-    end
-    return j
-end
-
-"""
-	funcjac(f, x)
-
-Return value of f and jacobian together.
-"""
-function funcjac(f, x)
-    y = f(x)
-    n = length(y)
-    m = length(x)
-    T = eltype(y)
-    j = Array{T, 2}(undef, n, m)
-    for i in 1:n
-        j[i, :] .= gradient(x -> f(x)[i], x)[1]
-    end
-    return y, j
-end
-
-"""
     newtonraphson(f::Function, x0::Number, fprime::Function, args::Tuple(); tol=1e-8, maxiter=50, eps0=1e-10)
 
 Find solution of f(x) = 0 (x is scalar) using Newton-Raphson iterations. 
@@ -95,11 +55,12 @@ end
 """
 function newtonraphson(f::Function, x0::AbstractVector, args::Tuple=(); tol::AbstractFloat=1e-8, maxiter::Integer=50, eps0::AbstractFloat=1e-10)
     for _ in 1:maxiter
-        y, J = funcjac(x->f(x,args...), x0)
+        J = jacobian(x->f(x,args...), x0)
         if cond(J) > 1/eps0
             warn("Jacobian is ill-conditioned")
             return x0
         end
+        y = f(x0, args...)
         x1 = x0 - J\y
         if maximum(abs.(x1-x0)) < tol
             return x1

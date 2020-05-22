@@ -1,9 +1,9 @@
 module NewtonRaphson
 
-using Zygote: gradient
+using ForwardDiff: jacobian
 using LinearAlgebra: cond
 
-export jacobian, newtonraphson
+export newtonraphson
 
 include("base.jl")
 
