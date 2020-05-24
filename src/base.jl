@@ -3,7 +3,7 @@
 
 Find solution of f(x) = 0 (x is scalar) using Newton-Raphson iterations. 
 
-Copied from https://mmas.github.io/newton-julia
+This code is from https://mmas.github.io/newton-julia. There was no license 
 
 """
 function newtonraphson(f::Function, x0::Number, fprime::Function, args::Tuple=();

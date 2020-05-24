@@ -1,0 +1,12 @@
+* NewtonMethods
+
+** What is this
+This is a very simplistic package that I use to solve nonlinear inverse problems using least-squares: Newton-Raphson and Quasi-Newton Method. The Newton-Raphson is merely there for completeness since it simplifies to Quasi-Newton when errors/covariances are not specified.
+
+The code for Newton-Raphson is taken from https://mmas.github.io/newton-julia
+
+** Functions
+This package provides two main functions: =newtonraphson=, =quasinewton=. Usage is fairly straitforward. In addition, there is also a function =correlationmatrix= to compute correlation matrix from posterior covariance (useful for basic interpretation of off-diagonal terms).
+
+** Remark
+The code uses automatic differentiation when jacobian or derivative is not provided explicitly. The argument-passing behaviour using a tuple with args seems to be faster than using anonymous functions to pass parameters to the function, so I leave it like that. I have not done extensive tests there so I am probably incorrect, but for now it works.
