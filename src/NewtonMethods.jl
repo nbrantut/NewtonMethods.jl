@@ -1,9 +1,9 @@
 module NewtonMethods
 
 using ForwardDiff: jacobian
-using LinearAlgebra: cond
+using LinearAlgebra: cond, I, inv
 
-export newtonraphson, quasinewton
+export newtonraphson, quasinewton, correlationmatrix
 
 include("base.jl")
 

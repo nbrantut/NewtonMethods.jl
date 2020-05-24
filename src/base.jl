@@ -11,7 +11,7 @@ function newtonraphson(f::Function, x0::Number, fprime::Function, args::Tuple=()
     for _ in 1:maxiter
         yprime = fprime(x0, args...)
         if abs(yprime) < eps0
-            warn("First derivative is zero")
+            @warn "First derivative is zero"
             return x0
         end
         y = f(x0, args...)
@@ -36,7 +36,7 @@ function newtonraphson(f::Function, x0::AbstractVector, jac::Function, args::Tup
     for _ in 1:maxiter
         J = jac(xc, args...)
         if cond(J) > 1/eps0
-            warn("Jacobian is ill-conditioned")
+            @warn "Jacobian is ill-conditioned"
             return xc
         end
         y = f(xc, args...)
@@ -59,7 +59,7 @@ function newtonraphson(f::Function, x0::AbstractVector, args::Tuple=(); tol::Abs
     for _ in 1:maxiter
         J = jacobian(x->f(x,args...), xc)
         if cond(J) > 1/eps0
-            warn("Jacobian is ill-conditioned")
+            @warn "Jacobian is ill-conditioned"
             return xc
         end
         y = f(xc, args...)
@@ -72,9 +72,17 @@ function newtonraphson(f::Function, x0::AbstractVector, args::Tuple=(); tol::Abs
     error("Max iteration exceeded")
 end
 
+"""
+    quasinewton(dobs::AbstractVector, g::Function, mprior::AbstractVector, jac::Function, CMi=0.0I, CDi=I, args::Tuple=();
+                step=1,tol=1e-8,maxiter=50,eps0=1e-10)
+
+Solution of inverse problem dobs = g(m) using Quasi-Newton method. Direct implementation of Tarantola 2005, p. 69.
+
+Return mean solution mpost and posterior covariance CMpost.
+"""
 function quasinewton(dobs::AbstractVector, g::Function,
-                     mprior::AbstractVector, jac::Function, args::Tuple(),
-                     CMi::AbstractMatrix, CDi::AbstractMatrix;
+                     mprior::AbstractVector, jac::Function,
+                     CMi=0.0I, CDi=I, args::Tuple=();
                      step::AbstractFloat=1.0, tol::AbstractFloat=1e-8,
                      maxiter::Integer=50, eps0::AbstractFloat=1e-10)
 
@@ -84,17 +92,65 @@ function quasinewton(dobs::AbstractVector, g::Function,
         G = jac(m, args...)
         A = G'*CDi*G + CMi
         if cond(A)>1/eps0
-            warn("Operator is ill conditioned. Consider Smoothing.")
-            return xc
+            @warn "Operator is ill conditioned. Consider Smoothing."
+            return m, inv(A)
         end
         d = g(m, args...)
         b = G'*CDi*(d - dobs) + CMi*(m-mprior)
         dm = -step*(A\b)
         m = m+dm
         if maximum(abs.(dm)) < tol
-            return m
+            CMpost = inv(A)
+            return m, CMpost
         end
     end
     error("Max iteration exceeded")
     
+end
+
+"""
+    quasinewton(dobs, g, mprior, CMi=0.0I, CDi=I, args=();
+                step=1,tol=1e-8,maxiter=50,eps0=1e-10)
+
+Method without direct specification of jacobian, computed using forwarddiff.
+"""
+function quasinewton(dobs::AbstractVector, g::Function,
+                     mprior::AbstractVector,
+                     CMi=0.0I, CDi=I, args::Tuple=();
+                     step::AbstractFloat=1.0, tol::AbstractFloat=1e-8,
+                     maxiter::Integer=50, eps0::AbstractFloat=1e-10)
+
+    m = copy(mprior)
+    
+    for _ in 1:maxiter
+        G = jacobian(x-> g(x,args...), m)
+        A = G'*CDi*G + CMi
+        if cond(A)>1/eps0
+            @warn "Operator is ill conditioned. Consider Smoothing."
+            return m, inv(A)
+        end
+        d = g(m, args...)
+        b = G'*CDi*(d - dobs) + CMi*(m-mprior)
+        dm = -step*(A\b)
+        m = m+dm
+        if maximum(abs.(dm)) < tol
+            CMpost = inv(A)
+            return m, CMpost
+        end
+    end
+    error("Max iteration exceeded")
+    
+end
+
+"""
+    correlationmatrix(CM)
+
+Compute correlation matrix from covariance matrix.
+"""
+function correlationmatrix(CM)
+    c = copy(CM)
+    for b in 1:size(CM,2), a in 1:size(CM,1)
+        c[a,b] /= sqrt(CM[a,a]*CM[b,b])
+    end
+    return c
 end
