@@ -87,6 +87,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
                      maxiter::Integer=50, eps0::AbstractFloat=1e-10)
 
     m = copy(mprior)
+    CMpost = copy(CMi)
     
     for _ in 1:maxiter
         G = jac(m, args...)
@@ -105,6 +106,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
         end
     end
     @warn "Max iteration exceeded. Result might be inaccurate."
+    return m, CMpost
     
 end
 
@@ -121,6 +123,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
                      maxiter::Integer=50, eps0::AbstractFloat=1e-10)
 
     m = copy(mprior)
+    CMpost = copy(CMi)
     
     for _ in 1:maxiter
         G = jacobian(x-> g(x,args...), m)
@@ -139,7 +142,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
         end
     end
     @warn "Max iteration exceeded. Result might be inaccurate."
-    
+    return m, CMpost
 end
 
 """
