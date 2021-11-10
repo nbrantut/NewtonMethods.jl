@@ -104,7 +104,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
             return m, CMpost
         end
     end
-    error("Max iteration exceeded")
+    @warn "Max iteration exceeded. Result might be inaccurate."
     
 end
 
@@ -138,7 +138,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
             return m, CMpost
         end
     end
-    error("Max iteration exceeded")
+    @warn "Max iteration exceeded. Result might be inaccurate."
     
 end
 
