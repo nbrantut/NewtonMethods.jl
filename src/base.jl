@@ -126,6 +126,7 @@ function quasinewton(dobs::AbstractVector, g::Function,
     CMpost = copy(CMi)
     
     for _ in 1:maxiter
+        println(m)
         G = jacobian(x-> g(x,args...), m)
         A = G'*CDi*G + CMi
         if cond(A)>1/eps0
